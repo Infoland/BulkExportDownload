@@ -46,10 +46,23 @@ namespace BulkExportDownload
             {
                 string bulkExportId = saveLoc.id;
                 string savePath = saveLoc.location;
-                string bulkExportPath = saveLoc.location + "\\" + bulkExportId;
-                string zipPath = saveLoc.location + "\\" + bulkExportId + ".zip";
+                string bulkExportPath;
+                string zipPath;
 
                 BulkExport bulkExport = readBulkExportFromApi(bulkExportId);
+
+                if (Properties.Settings.Default.UseBulkexportNameAsFoldername == "True")
+                {
+                    bulkExportPath = saveLoc.location + "\\" + bulkExport.name;
+                    zipPath = saveLoc.location + "\\" + bulkExport.name + ".zip";
+                }
+                else
+                {
+                    bulkExportPath = saveLoc.location + "\\" + bulkExportId;
+                    zipPath = saveLoc.location + "\\" + bulkExportId + ".zip";
+                }
+
+
 
                 if (bulkExport == null)
                 {
@@ -58,6 +71,24 @@ namespace BulkExportDownload
                     emailBody += String.Format(" - {0}\n", message);
                     
                     continue; //if we could not retrieve this bulkexport we continue with the next bulkexport
+                }
+
+                if (bulkExport.state == "busy" && Properties.Settings.Default["WaitForBulkexportToFinish"].ToString() == "True")
+                {
+                    int WaitTimeInHours = (int)Properties.Settings.Default["WaitTimeForExportToBeReadyInHours"];
+
+                    for (int i = 0; i < (WaitTimeInHours * 12); i++)
+                    {
+                        bulkExport = readBulkExportFromApi(bulkExportId);
+                        if (bulkExport.state != "busy")
+                        {
+                            break;
+                        }
+
+                        Logging.writeToLog("Bulkexport is busy, waiting for 5 minutes to check again");
+
+                        Thread.Sleep((int)TimeSpan.FromMinutes(5).TotalMilliseconds);
+                    }
                 }
 
                 if (!bulkExport.can_download)
@@ -92,8 +123,9 @@ namespace BulkExportDownload
 
                         //download new bulkexport, continue to next bulkexport if this fails. Errormessage is added to mail inside the DownloadBulkExport method
 
+                        bool downloadSuccesful = RestAPI.downloadBulkExport(bulkExportId, zipPath, bulkExport.name);
 
-                        if (!RestAPI.downloadBulkExport(bulkExportId, zipPath, bulkExport.name))
+                        if (!downloadSuccesful)
                         {
                             string message = String.Format("Could not download zip-file for bulkexport \"{0}\".", bulkExport.name);
                             Logging.writeToLog(message);
@@ -108,8 +140,10 @@ namespace BulkExportDownload
                             emailBody += String.Format(" - {0}\n", message);
                         }
 
-                        //extract new bulkexport
-                        ExtractBulkExport(zipPath, bulkExportPath);
+                        if (downloadSuccesful) { 
+                            //extract new bulkexport
+                            ExtractBulkExport(zipPath, bulkExportPath);
+                        }
 
                         //delete backup if download en extract succeeds
                         if (bool.Parse(Properties.Settings.Default.CleanUpPreviousExport))
@@ -147,7 +181,7 @@ namespace BulkExportDownload
         {
             Logging.writeToLog(String.Format("Reading Bulk Export {0} from API.", id));
 
-            IRestResponse response = RestAPI.readBulkExport(id);
+            RestResponse response = RestAPI.readBulkExport(id);
 
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
@@ -237,10 +271,15 @@ namespace BulkExportDownload
             {
                 Logging.writeToLog(String.Format("Creating backup for: {0}", savePath));
 
-                string backUpDir = backUpDirPrefix + DateTime.Now.ToString("yyyy-mm-dd_HH.mm.ss");
+                string backUpDir = backUpDirPrefix + DateTime.Now.ToString("yyyy-MM-dd_HH.mm.ss");
                 Directory.CreateDirectory(Path.Combine(savePath, backUpDir));
 
-                foreach(string filepath in Directory.GetFiles(bulkExportPath))
+                foreach (string dirPath in Directory.GetDirectories(bulkExportPath, "*", SearchOption.AllDirectories))
+                {
+                    Directory.CreateDirectory(dirPath.Replace(bulkExportPath, Path.Combine(savePath, backUpDir)));
+                }
+
+                foreach (string filepath in Directory.GetFiles(bulkExportPath))
                 {
                     string fileName = Path.GetFileName(filepath);
                     string targetFilePath = Path.Combine(savePath, backUpDir, fileName);

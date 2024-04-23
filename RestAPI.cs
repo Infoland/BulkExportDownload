@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
 using RestSharp;
 using System.Runtime.Serialization.Json;
 using System.Runtime.Serialization;
 using System.IO;
 using System.IO.Compression;
 using System.Net.Mail;
+using System.Threading;
 
 namespace BulkExportDownload
 {
@@ -18,37 +18,32 @@ namespace BulkExportDownload
         // private string credentials = "credentials u:" + (Properties.Settings.Default.Username) + " " + "pwd:" + (Properties.Settings.Default.Password);
         static RestClient client = new RestClient(Properties.Settings.Default.Url);
 
-
-        static public IRestResponse readBulkExport(string bulkexportid)
+        static public RestResponse readBulkExport(string bulkexportid)
         {
-            RestRequest request = new RestRequest("api/documents/bulk_exports/{bulk_export_id}", Method.GET);
+            RestRequest request = new RestRequest("api/documents/bulk_exports/{bulk_export_id}", Method.Get);
             request.AddUrlSegment("bulk_export_id", bulkexportid); // replaces matching token in request.Resource
 
             // easily add HTTP Headers
             request.AddHeader("Authorization", string.Format("token {0}", getToken()));
-            request.AddHeader("x-api-version", "1");
             request.AddHeader("x-api_key", Properties.Settings.Default.ApiKey);
 
-            IRestResponse response = client.Execute(request);
+            RestResponse response = client.Execute(request);
 
             return response;
         }
 
+        //Get authentication token from Zenya
         static private string getToken()
         {
             string tokenID = "";
 
-            RestRequest request = new RestRequest("api/tokens", Method.POST);
+            RestRequest request = new RestRequest("api/tokens", Method.Post);
 
-            jsonRequestData requestData = new jsonRequestData();
-            requestData.api_key = Properties.Settings.Default.ApiKey;
-            requestData.username = Properties.Settings.Default.Username;    
+            request.AddJsonBody(new { api_key = Properties.Settings.Default.ApiKey, username = Properties.Settings.Default.Username });
 
-            request.AddJsonBody(requestData);
+            RestResponse response = client.Execute(request);
 
-            IRestResponse response = client.Execute(request);
-
-            if(response.StatusCode == System.Net.HttpStatusCode.OK && response.Content != "")
+            if (response.StatusCode == System.Net.HttpStatusCode.OK && response.Content != "")
                 tokenID = response.Content.Replace("\"", "");
 
             return tokenID;
@@ -56,9 +51,9 @@ namespace BulkExportDownload
 
         static public bool downloadBulkExport(string id, string zipPath, string bulkExportName)
         {
-            bool blnSuccess = false;
+            bool blnSuccess = true;
+            int trycount = Properties.Settings.Default.DownloadTries;
 
-            
             try
             {
                 // verify if zipPath exists.
@@ -73,31 +68,72 @@ namespace BulkExportDownload
                 Logging.writeToLog(String.Format("Could not create folder \"{0}\" for bulkexport {1}", zipPath, id));
             }
 
-            Logging.writeToLog(String.Format("Downloading zip-file for bulkexport {0}", id));
-            using (var fileStream = new FileStream(zipPath, FileMode.Create))
+            while (trycount > 0)
             {
-                RestRequest request = new RestRequest("api/documents/bulk_exports/{bulk_export_id}/download", Method.GET)
+                try
                 {
-                    ResponseWriter = (responseStream) => responseStream.CopyTo(fileStream)
-                };
-                request.AddUrlSegment("bulk_export_id", id); // replaces matching token in request.Resource
+                    downloadZIP(trycount, id, zipPath, bulkExportName);
+                    break; // successfully downloaded export
+                }
+                catch (Exception ex)
+                {
+                    Logging.writeToLog(String.Format("Downloading export failed with message {0}", ex.Message));
 
-                // easily add HTTP Headers
-                request.AddHeader("Authorization", string.Format("token {0}", getToken()));
-                request.AddHeader("x-api-version", "1");
-                request.AddHeader("x-api_key", Properties.Settings.Default.ApiKey);
+                    if (--trycount == 0)
+                        return false;
 
-                client.DownloadData(request);
-
-                if (fileStream.Length > 0)
-                    blnSuccess = true;
-                else
-                    blnSuccess = false;
+                    //Wait for 5 minutes to try again
+                    Thread.Sleep((int)TimeSpan.FromMinutes(5).TotalMilliseconds);
+                }
             }
-
             return blnSuccess;
         }
 
+
+        private static void downloadZIP(int triesLeft, string id, string zipPath, string bulkExportName)
+        {
+            Logging.writeToLog(String.Format("Downloading zip-file for bulkexport {0}, tries left {1}", id, triesLeft));
+
+            //Download the ZIP file
+            using (var fileStream = new FileStream(zipPath, FileMode.Create))
+            {
+
+                RestRequest request = new RestRequest("api/documents/bulk_exports/{bulk_export_id}/download", Method.Get);
+                request.AddUrlSegment("bulk_export_id", id); // replaces matching token in request.Resource
+
+                request.AddHeader("Authorization", string.Format("token {0}", getToken()));
+                request.AddHeader("x-api_key", Properties.Settings.Default.ApiKey);
+
+                client.DownloadStream(request).CopyTo(fileStream);
+            }
+            
+            //Check if downloaded ZIP is valid
+            if (IsZipValid(zipPath))
+            {
+                Logging.writeToLog(String.Format("Bulkexport has been downloaded to {0} and is valid", System.IO.Path.GetDirectoryName(zipPath), id));
+            }
+            else
+            {
+                throw new Exception("ZIP file is not valid");
+            }
+
+        }
+
+        public static bool IsZipValid(string path)
+        {
+            try
+            {
+                using (var zipFile = ZipFile.OpenRead(path))
+                {
+                    var entries = zipFile.Entries;
+                    return true;
+                }
+            }
+            catch (InvalidDataException)
+            {
+                return false;
+            }
+        }
 
     }
 
