@@ -17,7 +17,7 @@ namespace BulkExportDownload
     class RestAPI
     {
         // private string credentials = "credentials u:" + (Properties.Settings.Default.Username) + " " + "pwd:" + (Properties.Settings.Default.Password);
-        static RestClient client = new RestClient(Properties.Settings.Default.Url);
+        static RestClient client = new RestClient(ApplicationSettings.ZenyaURL);
 
         static public RestResponse readBulkExport(string bulkexportid)
         {
@@ -25,8 +25,9 @@ namespace BulkExportDownload
             request.AddUrlSegment("bulk_export_id", bulkexportid); // replaces matching token in request.Resource
 
             // easily add HTTP Headers
-            request.AddHeader("Authorization", string.Format("token {0}", getToken()));
-            request.AddHeader("x-api_key", Properties.Settings.Default.ApiKey);
+            request.AddHeader("Authorization", $"token {getToken()}");
+            request.AddHeader("x-api-version", "5");
+            request.AddHeader("x-api_key", ApplicationSettings.ApiKey);
 
             RestResponse response = client.Execute(request);
 
@@ -40,7 +41,7 @@ namespace BulkExportDownload
 
             RestRequest request = new RestRequest("api/tokens", Method.Post);
 
-            request.AddJsonBody(new { api_key = Properties.Settings.Default.ApiKey, username = Properties.Settings.Default.Username });
+            request.AddJsonBody(new { api_key = ApplicationSettings.ApiKey, username = ApplicationSettings.UserName });
 
             RestResponse response = client.Execute(request);
 
@@ -50,10 +51,10 @@ namespace BulkExportDownload
             return tokenID;
         }
 
-        static public bool downloadBulkExport(string id, string zipPath, string bulkExportName)
+        static public bool DownloadBulkExport(string id, string zipPath, string bulkExportName)
         {
             bool blnSuccess = true;
-            int trycount = Properties.Settings.Default.DownloadTries;
+            int tryCount = ApplicationSettings.DownloadTries;
 
             try
             {
@@ -61,26 +62,29 @@ namespace BulkExportDownload
                 if (!Directory.Exists(System.IO.Path.GetDirectoryName(zipPath)))
                 {
                     Directory.CreateDirectory(System.IO.Path.GetDirectoryName(zipPath));
-                    Logging.writeToLog(String.Format("Folder \"{0}\" has been created for bulkexport {1}", System.IO.Path.GetDirectoryName(zipPath), id));
+                    Logging.writeToLog($"Folder \"{System.IO.Path.GetDirectoryName(zipPath)}\" has been created for bulkexport {id}");
                 }
             }
             catch
             {
-                Logging.writeToLog(String.Format("Could not create folder \"{0}\" for bulkexport {1}", zipPath, id));
+                Logging.writeToLog($"Could not create folder \"{zipPath}\" for bulkexport {id}");
             }
 
-            while (trycount > 0)
+            while (tryCount > 0)
             {
                 try
                 {
-                    downloadZIP(trycount, id, zipPath, bulkExportName);
+                    DownloadZIP(tryCount, id, zipPath, bulkExportName);
                     break; // successfully downloaded export
                 }
                 catch (Exception ex)
                 {
-                    Logging.writeToLog(String.Format("Downloading export failed with message {0}", ex.Message));
+                    Logging.writeToLog($"Downloading export failed with message {ex.Message}");
 
-                    if (--trycount == 0)
+                    //Substract one from the count
+                    tryCount -= 1;
+
+                    if (tryCount == 0)
                         return false;
 
                     //Wait for 5 minutes to try again
@@ -91,9 +95,9 @@ namespace BulkExportDownload
         }
 
 
-        private static void downloadZIP(int triesLeft, string id, string zipPath, string bulkExportName)
+        private static void DownloadZIP(int triesLeft, string id, string zipPath, string bulkExportName)
         {
-            Logging.writeToLog(String.Format("Downloading zip-file for bulkexport {0}, tries left {1}", id, triesLeft));
+            Logging.writeToLog($"Downloading zip-file for bulkexport {id}, tries left {triesLeft}");
 
             //Download the ZIP file
             using (var fileStream = new FileStream(zipPath, FileMode.Create))
@@ -102,8 +106,9 @@ namespace BulkExportDownload
                 RestRequest request = new RestRequest("api/documents/bulk_exports/{bulk_export_id}/download", Method.Get);
                 request.AddUrlSegment("bulk_export_id", id); // replaces matching token in request.Resource
 
-                request.AddHeader("Authorization", string.Format("token {0}", getToken()));
-                request.AddHeader("x-api_key", Properties.Settings.Default.ApiKey);
+                request.AddHeader("Authorization", $"token {getToken()}");
+                request.AddHeader("x-api-version", "5");
+                request.AddHeader("x-api_key", ApplicationSettings.DownloadTries);
 
                 client.DownloadStream(request).CopyTo(fileStream);
             }
@@ -111,7 +116,7 @@ namespace BulkExportDownload
             //Check if downloaded ZIP is valid
             if (IsZipValid(zipPath))
             {
-                Logging.writeToLog(String.Format("Bulkexport has been downloaded to {0} and is valid", System.IO.Path.GetDirectoryName(zipPath), id));
+                Logging.writeToLog($"Bulkexport has been downloaded to {System.IO.Path.GetDirectoryName(zipPath)} and is valid");
             }
             else
             {
