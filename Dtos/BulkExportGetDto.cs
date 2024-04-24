@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BulkExportDownload.Mappers;
+using System;
 using System.Runtime.Serialization;
 
 namespace BulkExportDownload.Dtos
@@ -12,13 +13,32 @@ namespace BulkExportDownload.Dtos
         [DataMember]
         internal string name;
 
-        [DataMember]
-        internal string state;
+        [DataMember(Name = "state")]
+        internal string internalState;
 
         [DataMember]
         internal string last_export_datetime;
 
         [DataMember]
         internal bool can_download;
+
+        public BulkExportState State
+        {
+            get
+            {
+                var mapper = new BulkExportMapper();
+                return mapper.Map(internalState);
+            }
+        }
+    }
+
+    public enum BulkExportState
+    {
+        Busy,
+        Ready,
+        ReadyWithErrors,
+        Unknown
     }
 }
+
+
