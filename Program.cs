@@ -1,15 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using BulkExportDownload.Dtos;
 using RestSharp;
-using System.Runtime.Serialization.Json;
-using System.Runtime.Serialization;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using System.Net.Mail;
+using System.Runtime.Serialization.Json;
+using System.Text;
+using System.Threading;
 
 
 namespace BulkExportDownload
@@ -19,15 +16,16 @@ namespace BulkExportDownload
         static internal string emailBody;
         static internal List<SaveLocation> BulkExportsToDownload = new List<SaveLocation>();
         const string backUpDirPrefix = "back_up_";
+        static RestAPI restApi = new RestAPI();
 
         static void Main(string[] args)
         {
-            Logging.writeToLog("Reading Bulk Export Downloader Tool settings");
+            Logging.WriteToLog("Reading Bulk Export Downloader Tool settings");
 
             //populate list of SaveLocation with the BulkExportsToDownload setting
             string[] saveLocs = ApplicationSettings.SaveLocations;
 
-            Logging.writeToLog($"Bulk export(s) to download: {saveLocs.Length}");
+            Logging.WriteToLog($"Bulk export(s) to download: {saveLocs.Length}");
 
             foreach (string saveLoc in saveLocs)
             {
@@ -38,7 +36,7 @@ namespace BulkExportDownload
                 BulkExportsToDownload.Add(saveLocation);
             }
 
-            Logging.writeToLog($"Setting API URL to: {ApplicationSettings.ZenyaURL}");
+            Logging.WriteToLog($"Setting API URL to: {ApplicationSettings.ZenyaURL}");
 
             emailBody = $"At {DateTime.Now.ToShortDateString()}, the Bulk Export Downloader has verified the state of the given Bulk Export(s) for \"{ApplicationSettings.ZenyaURL}\" and the following steps have been executed:\n";
 
@@ -49,7 +47,7 @@ namespace BulkExportDownload
                 string bulkExportPath;
                 string zipPath;
 
-                BulkExport bulkExport = readBulkExportFromApi(bulkExportId);
+                var bulkExport = ReadBulkExportFromApi(bulkExportId);
 
                 if (ApplicationSettings.UseBulkexportNameAsFoldername)
                 {
@@ -67,7 +65,7 @@ namespace BulkExportDownload
                 if (bulkExport == null)
                 {
                     string message = $"Could not retrieve bulkexport with id \"{bulkExportId}\".";
-                    Logging.writeToLog(message);
+                    Logging.WriteToLog(message);
                     emailBody += $" - {message}\n";
 
                     continue; //if we could not retrieve this bulkexport we continue with the next bulkexport
@@ -79,13 +77,13 @@ namespace BulkExportDownload
 
                     for (int i = 0; i < (WaitTimeInHours * 12); i++)
                     {
-                        bulkExport = readBulkExportFromApi(bulkExportId);
+                        bulkExport = ReadBulkExportFromApi(bulkExportId);
                         if (bulkExport.state != "busy")
                         {
                             break;
                         }
 
-                        Logging.writeToLog("Bulkexport is busy, waiting for 5 minutes to check again");
+                        Logging.WriteToLog("Bulkexport is busy, waiting for 5 minutes to check again");
 
                         Thread.Sleep((int)TimeSpan.FromMinutes(5).TotalMilliseconds);
                     }
@@ -95,7 +93,7 @@ namespace BulkExportDownload
                 {
                     //send e-mailmessage that bulk export settings are not correct for download
                     string message = $"The bulkexport \"{bulkExport.name}\" is not configured to allow download (manually or via the API).";
-                    Logging.writeToLog(message);
+                    Logging.WriteToLog(message);
                     emailBody += $" - {message}\n";
 
                     continue;
@@ -112,7 +110,7 @@ namespace BulkExportDownload
                         if (bulkExport.state == "readyWithErrors")
                         {
                             string message = $"WARNING: Bulkexport \"{bulkExport.name}\" has been classified as \"Ready with errors\". \nThe tool will attempt to download the BulkExport, but be sure to verify why the errors have occurred and resolve them within the source environment (\"{ApplicationSettings.ZenyaURL}\").";
-                            Logging.writeToLog(message);
+                            Logging.WriteToLog(message);
                             emailBody += $" - {message}\n";
                         }
 
@@ -123,12 +121,12 @@ namespace BulkExportDownload
 
                         //download new bulkexport, continue to next bulkexport if this fails. Errormessage is added to mail inside the DownloadBulkExport method
 
-                        bool downloadSuccesful = RestAPI.DownloadBulkExport(bulkExportId, zipPath, bulkExport.name);
+                        bool downloadSuccesful = restApi.DownloadBulkExport(bulkExportId, zipPath, bulkExport.name);
 
                         if (downloadSuccesful)
                         {
                             string message = $"Zip-file for bulkexport \"{bulkExport.name}\" has been downloaded into \"{zipPath}\".";
-                            Logging.writeToLog(message);
+                            Logging.WriteToLog(message);
                             emailBody += $" - {message}\n";
 
                             //extract new bulkexport
@@ -137,7 +135,7 @@ namespace BulkExportDownload
                         else
                         {
                             string message = $"Could not download zip-file for bulkexport \"{bulkExport.name}\".";
-                            Logging.writeToLog(message);
+                            Logging.WriteToLog(message);
                             emailBody += $" - {message}\n";
 
                             continue;
@@ -153,7 +151,7 @@ namespace BulkExportDownload
                     catch (Exception e)
                     {
                         string message = $"ERROR: An error occurred when handling the bulkexport \"{bulkExport.name}\":\nMessage: {e.Message}\nStackTrace:\n{e.StackTrace}";
-                        Logging.writeToLog(message);
+                        Logging.WriteToLog(message);
                         emailBody += $" - {message}\n";
 
                         continue;
@@ -162,7 +160,7 @@ namespace BulkExportDownload
                 else
                 {
                     string message = $"The bulkexport \"{bulkExport.name}\" could not be downloaded, because the status of the bulkexport is \"{bulkExport.state}\".";
-                    Logging.writeToLog(message);
+                    Logging.WriteToLog(message);
                     emailBody += $" - {message}\n";
                 }
             }
@@ -175,22 +173,22 @@ namespace BulkExportDownload
                 Console.ReadLine();
         }
 
-        static private BulkExport readBulkExportFromApi(string id)
+        static private BulkExport ReadBulkExportFromApi(string id)
         {
-            Logging.writeToLog($"Reading Bulk Export {id} from API.");
+            Logging.WriteToLog($"Reading Bulk Export {id} from API.");
 
-            RestResponse response = RestAPI.readBulkExport(id);
+            RestResponse response = restApi.ReadBulkExport(id);
 
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
-                Logging.writeToLog($"Downloading Bulk Export {id} from API.");
+                Logging.WriteToLog($"Downloading Bulk Export {id} from API.");
 
                 string content = response.Content; // raw content as string
-                BulkExport deserializedBulkExport = new BulkExport();
+                var deserializedBulkExport = new BulkExport();
                 System.IO.MemoryStream ms = new System.IO.MemoryStream(Encoding.UTF8.GetBytes(content));
                 DataContractJsonSerializer ser = new DataContractJsonSerializer(deserializedBulkExport.GetType());
 
-                Logging.writeToLog($"Detected size of Bulk Export {id}: {ms.Length} bytes");
+                Logging.WriteToLog($"Detected size of Bulk Export {id}: {ms.Length} bytes");
 
                 deserializedBulkExport = ser.ReadObject(ms) as BulkExport;
                 ms.Close();
@@ -204,7 +202,7 @@ namespace BulkExportDownload
                 {
                     message += ":\n " + response.ErrorMessage;
                 }
-                Logging.writeToLog(message);
+                Logging.WriteToLog(message);
                 emailBody += $" - {message}\n";
 
                 return null;
@@ -214,7 +212,7 @@ namespace BulkExportDownload
 
         static private void DeleteBackups(string bulkExportId, string savePath)
         {
-            Logging.writeToLog($"Deleting backup folders for Bulk export \"{bulkExportId}\"");
+            Logging.WriteToLog($"Deleting backup folders for Bulk export \"{bulkExportId}\"");
 
             //delete old extract directories
             DirectoryInfo directoryInfo = new DirectoryInfo(savePath);
@@ -225,27 +223,27 @@ namespace BulkExportDownload
                 {
                     try
                     {
-                        Logging.writeToLog($"- Deleting backup folder: {dir.FullName}");
+                        Logging.WriteToLog($"- Deleting backup folder: {dir.FullName}");
                         dir.Delete(true);
                     }
                     catch (Exception e)
                     {
                         string message = $"ERROR: An error occurred when deleting the backup folder \"{dir.FullName}\":\nMessage: {e.Message}\nStackTrace:\n{e.StackTrace}";
-                        Logging.writeToLog(message);
+                        Logging.WriteToLog(message);
                         emailBody += $" - {message}\n";
                     }
                 }
             }
             else
             {
-                Logging.writeToLog($"No backup folders detected for Bulk export \"{bulkExportId}\". No action required.");
+                Logging.WriteToLog($"No backup folders detected for Bulk export \"{bulkExportId}\". No action required.");
             }
         }
 
         static private void DeleteZip(string zipPath)
         {
 
-            Logging.writeToLog($"Deleting zip file: \"{zipPath}\"");
+            Logging.WriteToLog($"Deleting zip file: \"{zipPath}\"");
             FileInfo zipInfo = new FileInfo(zipPath);
 
             try
@@ -255,7 +253,7 @@ namespace BulkExportDownload
             catch (Exception e)
             {
                 string message = $"ERROR: An error occurred when deleting the zip file \"{zipPath}\":\nMessage: {e.Message}\nStackTrace:\n{e.StackTrace}";
-                Logging.writeToLog(message);
+                Logging.WriteToLog(message);
                 emailBody += $" - {message}\n";
             }
 
@@ -264,10 +262,10 @@ namespace BulkExportDownload
 
         private static void BackupBulkExport(string savePath, string bulkExportPath)
         {
-            Logging.writeToLog($"Verifying if a Backup can be made for Bulk Export: {bulkExportPath}");
+            Logging.WriteToLog($"Verifying if a Backup can be made for Bulk Export: {bulkExportPath}");
             if (Directory.Exists(savePath) && Directory.Exists(bulkExportPath))
             {
-                Logging.writeToLog($"Creating backup for: {savePath}");
+                Logging.WriteToLog($"Creating backup for: {savePath}");
 
                 string backUpDir = backUpDirPrefix + DateTime.Now.ToString("yyyy-MM-dd_HH.mm.ss");
                 Directory.CreateDirectory(Path.Combine(savePath, backUpDir));
@@ -287,20 +285,20 @@ namespace BulkExportDownload
             }
             else
             {
-                Logging.writeToLog($"Bulk Export folder \"{savePath}\" does not exist. No action required.");
+                Logging.WriteToLog($"Bulk Export folder \"{savePath}\" does not exist. No action required.");
             }
         }
 
         static private void ExtractBulkExport(string zipPath, string bulkExportPath)
         {
-            Logging.writeToLog($"Extracting zip-file (\"{zipPath}\") to: {bulkExportPath}");
+            Logging.WriteToLog($"Extracting zip-file (\"{zipPath}\") to: {bulkExportPath}");
             if (!Directory.Exists(bulkExportPath))
             {
                 Directory.CreateDirectory(bulkExportPath);
             }
             else
             {
-                Logging.writeToLog($"Cleaning up the current Bulk Export folder \"{bulkExportPath}\".");
+                Logging.WriteToLog($"Cleaning up the current Bulk Export folder \"{bulkExportPath}\".");
                 DirectoryInfo bulkExportDir = new DirectoryInfo(bulkExportPath);
                 CleanUpFolder(bulkExportDir);
             }
@@ -314,7 +312,7 @@ namespace BulkExportDownload
         {
             // only log the following line, if the "DebugMode" has been set to true.
             if (ApplicationSettings.DebugMode)
-                Logging.writeToLog($"Cleaning up files from folder \"{dirInfo.FullName}\".");
+                Logging.WriteToLog($"Cleaning up files from folder \"{dirInfo.FullName}\".");
 
             // delete all files from the root of the Bulk export folder
             foreach (FileInfo file in dirInfo.GetFiles())
@@ -332,7 +330,7 @@ namespace BulkExportDownload
                     {
                         if (--retriesLeft == 0)
                         {
-                            Logging.writeToLog($"Error deleting file \"{file.FullName}\". No more retries left.\nException: {e.Message}\n{e.StackTrace}");
+                            Logging.WriteToLog($"Error deleting file \"{file.FullName}\". No more retries left.\nException: {e.Message}\n{e.StackTrace}");
                             throw;
                         }
                         Thread.Sleep(1000);
@@ -349,26 +347,4 @@ namespace BulkExportDownload
         }
 
     }
-
-    [DataContract]
-    internal class BulkExport
-    {
-        [DataMember]
-        internal Int32 bulk_export_id;
-
-        [DataMember]
-        internal string name;
-
-        [DataMember]
-        internal string state;
-
-        [DataMember]
-        internal string last_export_datetime;
-
-        [DataMember]
-        internal bool can_download;
-    }
-
 }
-
-

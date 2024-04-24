@@ -16,7 +16,7 @@ namespace BulkExportDownload
 
         static public void addMessageToEmailBody(string message)
         {
-            writeToLog($"Adding the following message to e-mail body: \n{message}\n\n");
+            WriteToLog($"Adding the following message to e-mail body: \n{message}\n\n");
             emailBody += message + "\n\n";
         }
 
@@ -25,7 +25,7 @@ namespace BulkExportDownload
             string from = ApplicationSettings.FromEMailAddress;
             string to = ApplicationSettings.ToEMailAddress;
 
-            writeToLog($"Sending e-mail message to '{to}'.");
+            WriteToLog($"Sending e-mail message to '{to}'.");
 
             MailMessage mail = new MailMessage(from, to);
             SmtpClient client = new SmtpClient();
@@ -59,18 +59,18 @@ namespace BulkExportDownload
 
                 mail.Dispose();
 
-                writeToLog($"Error occured when sending mail to {ApplicationSettings.MailServer}.\n {e.Message} \n {e.StackTrace}");
-                writeToLog($"From: {ApplicationSettings.FromEMailAddress}");
-                writeToLog($"To: {ApplicationSettings.ToEMailAddress}");
+                WriteToLog($"Error occured when sending mail to {ApplicationSettings.MailServer}.\n {e.Message} \n {e.StackTrace}");
+                WriteToLog($"From: {ApplicationSettings.FromEMailAddress}");
+                WriteToLog($"To: {ApplicationSettings.ToEMailAddress}");
                 if (attachmentName != "")
-                    writeToLog($"Attachment(s): {attachmentName}");
-                writeToLog($"Subject: \"{ApplicationSettings.EmailSubject}\"");
-                writeToLog($"Contents of the mail: \n {emailBody}");
+                    WriteToLog($"Attachment(s): {attachmentName}");
+                WriteToLog($"Subject: \"{ApplicationSettings.EmailSubject}\"");
+                WriteToLog($"Contents of the mail: \n {emailBody}");
             }
 
         }
 
-        static public void writeToLog(string message)
+        static public void WriteToLog(string message)
         {
             // Write the text to the console.
             Console.WriteLine(message);
