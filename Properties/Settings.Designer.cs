@@ -12,7 +12,7 @@ namespace BulkExportDownload.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "16.10.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "17.9.0.0")]
     internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
@@ -20,15 +20,6 @@ namespace BulkExportDownload.Properties {
         public static Settings Default {
             get {
                 return defaultInstance;
-            }
-        }
-        
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("https://myorganisation.zenya.work")]
-        public string Url {
-            get {
-                return ((string)(this["Url"]));
             }
         }
         
@@ -44,36 +35,9 @@ namespace BulkExportDownload.Properties {
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public string AllowDownloadOfExportWithErrors {
+        public bool AllowDownloadOfExportWithErrors {
             get {
-                return ((string)(this["AllowDownloadOfExportWithErrors"]));
-            }
-        }
-        
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("toemailaddress")]
-        public string ToEMailAddress {
-            get {
-                return ((string)(this["ToEMailAddress"]));
-            }
-        }
-        
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("MyAPIKey")]
-        public string ApiKey {
-            get {
-                return ((string)(this["ApiKey"]));
-            }
-        }
-        
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("fromemailaddress")]
-        public string FromEMailAddress {
-            get {
-                return ((string)(this["FromEMailAddress"]));
+                return ((bool)(this["AllowDownloadOfExportWithErrors"]));
             }
         }
         
@@ -83,15 +47,6 @@ namespace BulkExportDownload.Properties {
         public string BulkExportsToDownload {
             get {
                 return ((string)(this["BulkExportsToDownload"]));
-            }
-        }
-        
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool DebugMode {
-            get {
-                return ((bool)(this["DebugMode"]));
             }
         }
         
@@ -116,18 +71,99 @@ namespace BulkExportDownload.Properties {
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public string SaveCopyOfZipFile {
+        public bool SaveCopyOfZipFile {
             get {
-                return ((string)(this["SaveCopyOfZipFile"]));
+                return ((bool)(this["SaveCopyOfZipFile"]));
             }
         }
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public string CleanUpPreviousExport {
+        public bool CleanUpPreviousExport {
             get {
-                return ((string)(this["CleanUpPreviousExport"]));
+                return ((bool)(this["CleanUpPreviousExport"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool WaitForBulkexportToFinish {
+            get {
+                return ((bool)(this["WaitForBulkexportToFinish"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("2")]
+        public int WaitTimeForExportToBeReadyInHours {
+            get {
+                return ((int)(this["WaitTimeForExportToBeReadyInHours"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("5")]
+        public int DownloadTries {
+            get {
+                return ((int)(this["DownloadTries"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("https://customer.zenya.work")]
+        public string Url {
+            get {
+                return ((string)(this["Url"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("toemailaddress@mail.nl")]
+        public string ToEMailAddress {
+            get {
+                return ((string)(this["ToEMailAddress"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("XXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXX")]
+        public string ApiKey {
+            get {
+                return ((string)(this["ApiKey"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("fromemailaddress@mail.nl")]
+        public string FromEMailAddress {
+            get {
+                return ((string)(this["FromEMailAddress"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool DebugMode {
+            get {
+                return ((bool)(this["DebugMode"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool UseBulkexportNameAsFoldername {
+            get {
+                return ((bool)(this["UseBulkexportNameAsFoldername"]));
             }
         }
     }

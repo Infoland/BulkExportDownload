@@ -2,29 +2,14 @@
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="BulkExportDownload.Properties" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
-    <Setting Name="Url" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">https://myorganisation.zenya.work</Value>
-    </Setting>
     <Setting Name="Username" Type="System.String" Scope="Application">
       <Value Profile="(Default)">BulkExportDownloader</Value>
     </Setting>
-    <Setting Name="AllowDownloadOfExportWithErrors" Type="System.String" Scope="Application">
+    <Setting Name="AllowDownloadOfExportWithErrors" Type="System.Boolean" Scope="Application">
       <Value Profile="(Default)">True</Value>
-    </Setting>
-    <Setting Name="ToEMailAddress" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">toemailaddress</Value>
-    </Setting>
-    <Setting Name="ApiKey" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">MyAPIKey</Value>
-    </Setting>
-    <Setting Name="FromEMailAddress" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">fromemailaddress</Value>
     </Setting>
     <Setting Name="BulkExportsToDownload" Type="System.String" Scope="Application">
       <Value Profile="(Default)">1, c:\bulkexports</Value>
-    </Setting>
-    <Setting Name="DebugMode" Type="System.Boolean" Scope="Application">
-      <Value Profile="(Default)">True</Value>
     </Setting>
     <Setting Name="MailServer" Type="System.String" Scope="Application">
       <Value Profile="(Default)">smtp.mytestmailserver.org</Value>
@@ -32,11 +17,38 @@
     <Setting Name="EMailSubject" Type="System.String" Scope="Application">
       <Value Profile="(Default)">Bulk Export Downloader Report</Value>
     </Setting>
-    <Setting Name="SaveCopyOfZipFile" Type="System.String" Scope="Application">
+    <Setting Name="SaveCopyOfZipFile" Type="System.Boolean" Scope="Application">
       <Value Profile="(Default)">True</Value>
     </Setting>
-    <Setting Name="CleanUpPreviousExport" Type="System.String" Scope="Application">
+    <Setting Name="CleanUpPreviousExport" Type="System.Boolean" Scope="Application">
       <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="WaitForBulkexportToFinish" Type="System.Boolean" Scope="Application">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="WaitTimeForExportToBeReadyInHours" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">2</Value>
+    </Setting>
+    <Setting Name="DownloadTries" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">5</Value>
+    </Setting>
+    <Setting Name="Url" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">https://customer.zenya.work</Value>
+    </Setting>
+    <Setting Name="ToEMailAddress" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">toemailaddress@mail.nl</Value>
+    </Setting>
+    <Setting Name="ApiKey" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">XXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXX</Value>
+    </Setting>
+    <Setting Name="FromEMailAddress" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">fromemailaddress@mail.nl</Value>
+    </Setting>
+    <Setting Name="DebugMode" Type="System.Boolean" Scope="Application">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="UseBulkexportNameAsFoldername" Type="System.Boolean" Scope="Application">
+      <Value Profile="(Default)">True</Value>
     </Setting>
   </Settings>
 </SettingsFile>
