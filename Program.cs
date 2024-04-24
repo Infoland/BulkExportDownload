@@ -313,6 +313,16 @@ namespace BulkExportDownload
 
             // .NET 4.8 does not support the "overwriteFiles"-parameter. This is why we need to clear the folder before extracting the Zipfile into the Bulk export folder.
             ZipFile.ExtractToDirectory(zipPath, bulkExportPath);
+
+            //If the unpacked ZIP only contains a ZIP and the setting ExtractInnerZIP is set to true then extract that ZIP
+            if (ApplicationSettings.ExtractInnerZIP && Directory.GetFiles(bulkExportPath)[0].EndsWith(".zip")) 
+            {
+                string innerZIPPath = Directory.GetFiles(bulkExportPath)[0];
+                ZipFile.ExtractToDirectory(innerZIPPath, bulkExportPath);
+                //When extracted delete the inner ZIP
+                DeleteZip(innerZIPPath);
+            }
+
             emailBody += $" - Zip-file (\"{zipPath}\") has been extracted to: {bulkExportPath}\n";
         }
 
