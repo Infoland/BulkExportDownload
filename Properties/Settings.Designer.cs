@@ -43,7 +43,7 @@ namespace BulkExportDownload.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("1, c:\\bulkexports")]
+        [global::System.Configuration.DefaultSettingValueAttribute("1, C:\\Bulkexport")]
         public string BulkExportsToDownload {
             get {
                 return ((string)(this["BulkExportsToDownload"]));
@@ -52,7 +52,7 @@ namespace BulkExportDownload.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("smtp.mytestmailserver.org")]
+        [global::System.Configuration.DefaultSettingValueAttribute("mailserver.com")]
         public string MailServer {
             get {
                 return ((string)(this["MailServer"]));
@@ -124,7 +124,7 @@ namespace BulkExportDownload.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("toemailaddress@mail.nl")]
+        [global::System.Configuration.DefaultSettingValueAttribute("to@mail.com")]
         public string ToEMailAddress {
             get {
                 return ((string)(this["ToEMailAddress"]));
@@ -133,7 +133,7 @@ namespace BulkExportDownload.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("XXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXX")]
+        [global::System.Configuration.DefaultSettingValueAttribute("XXXXXX-XXXXX-XXXX-XXXXXXX")]
         public string ApiKey {
             get {
                 return ((string)(this["ApiKey"]));
@@ -142,7 +142,7 @@ namespace BulkExportDownload.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("fromemailaddress@mail.nl")]
+        [global::System.Configuration.DefaultSettingValueAttribute("from@mail.com")]
         public string FromEMailAddress {
             get {
                 return ((string)(this["FromEMailAddress"]));
@@ -160,10 +160,37 @@ namespace BulkExportDownload.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
         public bool UseBulkexportNameAsFoldername {
             get {
                 return ((bool)(this["UseBulkexportNameAsFoldername"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string MailUser {
+            get {
+                return ((string)(this["MailUser"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string MailPassword {
+            get {
+                return ((string)(this["MailPassword"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool EnableSSLMail {
+            get {
+                return ((bool)(this["EnableSSLMail"]));
             }
         }
     }

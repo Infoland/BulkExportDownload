@@ -71,14 +71,14 @@ namespace BulkExportDownload
                     continue; //if we could not retrieve this bulkexport we continue with the next bulkexport
                 }
 
-                if (bulkExport.state == "busy" && ApplicationSettings.WaitForBulkexportToFinish)
+                if (bulkExport.State == BulkExportState.Busy && ApplicationSettings.WaitForBulkexportToFinish)
                 {
                     int WaitTimeInHours = ApplicationSettings.WaitTimeForExportToBeReadyInHours;
 
                     for (int i = 0; i < (WaitTimeInHours * 12); i++)
                     {
                         bulkExport = ReadBulkExportFromApi(bulkExportId);
-                        if (bulkExport.state != "busy")
+                        if (bulkExport.State != BulkExportState.Busy)
                         {
                             break;
                         }
@@ -99,74 +99,73 @@ namespace BulkExportDownload
                     continue;
                 }
 
-                bool AllowDownloadOfExportWithErrors = ApplicationSettings.AllowDownloadOfExportWithErrors;
 
-                emailBody += $" - The Bulkexport with name \"{bulkExport.name}\" (\"{bulkExport.bulk_export_id}\" has been found, with the status \"{bulkExport.state}\").\n";
+                emailBody += $@" - The Bulkexport with name ""{bulkExport.name}"" (""{bulkExport.bulk_export_id}"" has been found, with the status ""{bulkExport.State}({bulkExport.internalState})"").\n";
 
-                if (bulkExport.state == "ready" || (bulkExport.state == "readyWithErrors" && AllowDownloadOfExportWithErrors))
+                var readyWithErrors = bulkExport.State == BulkExportState.ReadyWithErrors;
+                var allowDownloadOfExportWithErrors = ApplicationSettings.AllowDownloadOfExportWithErrors;
+                var canTryToDownload = (bulkExport.State == BulkExportState.Ready || (readyWithErrors && allowDownloadOfExportWithErrors));
+                if (!canTryToDownload)
                 {
-                    try
-                    {
-                        if (bulkExport.state == "readyWithErrors")
-                        {
-                            string message = $"WARNING: Bulkexport \"{bulkExport.name}\" has been classified as \"Ready with errors\". \nThe tool will attempt to download the BulkExport, but be sure to verify why the errors have occurred and resolve them within the source environment (\"{ApplicationSettings.ZenyaURL}\").";
-                            Logging.WriteToLog(message);
-                            emailBody += $" - {message}\n";
-                        }
-
-                        if (ApplicationSettings.CleanUpPreviousExport)
-                            DeleteBackups(bulkExportId, savePath);
-
-                        BackupBulkExport(savePath, bulkExportPath);
-
-                        //download new bulkexport, continue to next bulkexport if this fails. Errormessage is added to mail inside the DownloadBulkExport method
-
-                        bool downloadSuccesful = restApi.DownloadBulkExport(bulkExportId, zipPath, bulkExport.name);
-
-                        if (downloadSuccesful)
-                        {
-                            string message = $"Zip-file for bulkexport \"{bulkExport.name}\" has been downloaded into \"{zipPath}\".";
-                            Logging.WriteToLog(message);
-                            emailBody += $" - {message}\n";
-
-                            //extract new bulkexport
-                            ExtractBulkExport(zipPath, bulkExportPath);
-                        }
-                        else
-                        {
-                            string message = $"Could not download zip-file for bulkexport \"{bulkExport.name}\".";
-                            Logging.WriteToLog(message);
-                            emailBody += $" - {message}\n";
-
-                            continue;
-                        }
-
-                        //delete backup if download en extract succeeds
-                        if (ApplicationSettings.CleanUpPreviousExport)
-                            DeleteBackups(bulkExportId, savePath);
-
-                        if (!ApplicationSettings.SaveCopyOfZipFile)
-                            DeleteZip(zipPath);
-                    }
-                    catch (Exception e)
-                    {
-                        string message = $"ERROR: An error occurred when handling the bulkexport \"{bulkExport.name}\":\nMessage: {e.Message}\nStackTrace:\n{e.StackTrace}";
-                        Logging.WriteToLog(message);
-                        emailBody += $" - {message}\n";
-
-                        continue;
-                    }
+                    string message = $@"The bulkexport ""{bulkExport.name}"" could not be downloaded, because the status of the bulkexport is ""{bulkExport.State}({bulkExport.internalState})"".";
+                    Logging.WriteToLog(message);
+                    emailBody += $" - {message}\n";
+                    continue;
                 }
-                else
+
+                // Log warning when trying to download bulk export ready, but with errors (enabled with AllowDownloadOfExportWithErrors)
+                if (readyWithErrors)
                 {
-                    string message = $"The bulkexport \"{bulkExport.name}\" could not be downloaded, because the status of the bulkexport is \"{bulkExport.state}\".";
+                    string message = $"WARNING: Bulkexport \"{bulkExport.name}\" has been classified as \"Ready with errors\". \nThe tool will attempt to download the BulkExport, but be sure to verify why the errors have occurred and resolve them within the source environment (\"{ApplicationSettings.ZenyaURL}\").";
                     Logging.WriteToLog(message);
                     emailBody += $" - {message}\n";
                 }
+
+                try
+                {
+                    if (ApplicationSettings.CleanUpPreviousExport)
+                        DeleteBackups(bulkExportId, savePath);
+
+                    BackupBulkExport(savePath, bulkExportPath);
+
+                    //download new bulkexport, continue to next bulkexport if this fails. Errormessage is added to mail inside the DownloadBulkExport method
+
+                    bool downloadSuccesful = restApi.DownloadBulkExport(bulkExportId, zipPath, bulkExport.name);
+
+                    if (!downloadSuccesful)
+                    {
+                        var couldNotDownloadMessage = $"Could not download zip-file for bulkexport \"{bulkExport.name}\".";
+                        Logging.WriteToLog(couldNotDownloadMessage);
+                        emailBody += $" - {couldNotDownloadMessage}\n";
+
+                        continue;
+                    }
+
+                    string message = $"Zip-file for bulkexport \"{bulkExport.name}\" has been downloaded into \"{zipPath}\".";
+                    Logging.WriteToLog(message);
+                    emailBody += $" - {message}\n";
+
+                    //extract new bulkexport
+                    ExtractBulkExport(zipPath, bulkExportPath);
+
+                    //delete backup if download en extract succeeds
+                    if (ApplicationSettings.CleanUpPreviousExport)
+                        DeleteBackups(bulkExportId, savePath);
+
+                    if (!ApplicationSettings.SaveCopyOfZipFile)
+                        DeleteZip(zipPath);
+                }
+                catch (Exception e)
+                {
+                    string message = $"ERROR: An error occurred when handling the bulkexport \"{bulkExport.name}\":\nMessage: {e.Message}\nStackTrace:\n{e.StackTrace}";
+                    Logging.WriteToLog(message);
+                    emailBody += $" - {message}\n";
+
+                    continue;
+                }
             }
 
-            Logging.addMessageToEmailBody(emailBody);
-            Logging.SendEmail();
+            Logging.SendEmail(emailBody);
 
             Console.WriteLine("done.");
             if (ApplicationSettings.DebugMode)
@@ -272,9 +271,18 @@ namespace BulkExportDownload
 
                 foreach (string dirPath in Directory.GetDirectories(bulkExportPath, "*", SearchOption.AllDirectories))
                 {
+                    //Create the subdirectorys
                     Directory.CreateDirectory(dirPath.Replace(bulkExportPath, Path.Combine(savePath, backUpDir)));
-                }
 
+                    //Move files to the subdirectories in the backup folder
+                    foreach (string filepath in Directory.GetFiles(dirPath))
+                    {
+                        string fileName = Path.GetFileName(filepath);
+                        string targetFilePath = filepath.Replace(bulkExportPath, Path.Combine(savePath, backUpDir));
+                        File.Move(filepath, targetFilePath);
+                    }
+                }
+                //Move the files in the root directory
                 foreach (string filepath in Directory.GetFiles(bulkExportPath))
                 {
                     string fileName = Path.GetFileName(filepath);

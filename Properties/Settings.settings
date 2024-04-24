@@ -9,10 +9,10 @@
       <Value Profile="(Default)">True</Value>
     </Setting>
     <Setting Name="BulkExportsToDownload" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">1, c:\bulkexports</Value>
+      <Value Profile="(Default)">1, C:\Bulkexport</Value>
     </Setting>
     <Setting Name="MailServer" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">smtp.mytestmailserver.org</Value>
+      <Value Profile="(Default)">mailserver.com</Value>
     </Setting>
     <Setting Name="EMailSubject" Type="System.String" Scope="Application">
       <Value Profile="(Default)">Bulk Export Downloader Report</Value>
@@ -36,19 +36,28 @@
       <Value Profile="(Default)">https://customer.zenya.work</Value>
     </Setting>
     <Setting Name="ToEMailAddress" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">toemailaddress@mail.nl</Value>
+      <Value Profile="(Default)">to@mail.com</Value>
     </Setting>
     <Setting Name="ApiKey" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">XXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXX</Value>
+      <Value Profile="(Default)">XXXXXX-XXXXX-XXXX-XXXXXXX</Value>
     </Setting>
     <Setting Name="FromEMailAddress" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">fromemailaddress@mail.nl</Value>
+      <Value Profile="(Default)">from@mail.com</Value>
     </Setting>
     <Setting Name="DebugMode" Type="System.Boolean" Scope="Application">
       <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="UseBulkexportNameAsFoldername" Type="System.Boolean" Scope="Application">
-      <Value Profile="(Default)">True</Value>
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="MailUser" Type="System.String" Scope="Application">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="MailPassword" Type="System.String" Scope="Application">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="EnableSSLMail" Type="System.Boolean" Scope="Application">
+      <Value Profile="(Default)">False</Value>
     </Setting>
   </Settings>
 </SettingsFile>
