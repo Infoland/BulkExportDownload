@@ -272,9 +272,18 @@ namespace BulkExportDownload
 
                 foreach (string dirPath in Directory.GetDirectories(bulkExportPath, "*", SearchOption.AllDirectories))
                 {
+                    //Create the subdirectorys
                     Directory.CreateDirectory(dirPath.Replace(bulkExportPath, Path.Combine(savePath, backUpDir)));
+                    
+                    //Move files to the subdirectories in the backup folder
+                    foreach (string filepath in Directory.GetFiles(dirPath))
+                    {
+                        string fileName = Path.GetFileName(filepath);
+                        string targetFilePath = filepath.Replace(bulkExportPath, Path.Combine(savePath, backUpDir));
+                        File.Move(filepath, targetFilePath);
+                    }
                 }
-
+                //Move the files in the root directory
                 foreach (string filepath in Directory.GetFiles(bulkExportPath))
                 {
                     string fileName = Path.GetFileName(filepath);
