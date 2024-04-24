@@ -293,7 +293,7 @@ namespace BulkExportDownload
             }
             else
             {
-                Logging.WriteToLog($"Bulk Export folder \"{savePath}\" does not exist. No action required.");
+                Logging.WriteToLog($"Bulk Export folder \"{bulkExportPath}\" does not exist. No action required.");
             }
         }
 
