@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace BulkExportDownload
+﻿namespace BulkExportDownload
 {
     public class ApplicationSettings
     {
@@ -75,6 +69,19 @@ namespace BulkExportDownload
             get { return Properties.Settings.Default.EMailSubject; }
         }
 
+        public static string MailUser
+        {
+            get { return Properties.Settings.Default.MailUser; }
+        }
 
+        public static string MailPassword
+        {
+            get { return Properties.Settings.Default.MailPassword; }
+        }
+
+        public static bool UseCredentialsForMail
+        {
+            get { return !string.IsNullOrEmpty(MailUser) && !string.IsNullOrEmpty(MailPassword); }
+        }
     }
 }

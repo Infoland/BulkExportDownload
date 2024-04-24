@@ -1,10 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.IO;
-using System.IO.Compression;
 using System.Net.Mail;
 
 namespace BulkExportDownload
@@ -12,30 +7,29 @@ namespace BulkExportDownload
     class Logging
     {
 
-        static string emailBody;
-
-        static public void addMessageToEmailBody(string message)
-        {
-            WriteToLog($"Adding the following message to e-mail body: \n{message}\n\n");
-            emailBody += message + "\n\n";
-        }
-
-        static public void SendEmail()
+        static public void SendEmail(string body)
         {
             string from = ApplicationSettings.FromEMailAddress;
             string to = ApplicationSettings.ToEMailAddress;
 
             WriteToLog($"Sending e-mail message to '{to}'.");
+            WriteToLog($"Adding the following message to e-mail body: \n{body}\n\n");
+
 
             MailMessage mail = new MailMessage(from, to);
             SmtpClient client = new SmtpClient();
             mail.IsBodyHtml = false;
             client.Port = 25;
             client.DeliveryMethod = SmtpDeliveryMethod.Network;
-            client.UseDefaultCredentials = false;
+
+            if (ApplicationSettings.UseCredentialsForMail)
+                client.Credentials = new System.Net.NetworkCredential(ApplicationSettings.MailUser, ApplicationSettings.MailPassword);
+            else
+                client.UseDefaultCredentials = false;
+
             client.Host = ApplicationSettings.MailServer;
             mail.Subject = ApplicationSettings.EmailSubject;
-            mail.Body = emailBody;
+            mail.Body = body;
 
             // attach logfile, if it exists
             string logFile = $"{AppDomain.CurrentDomain.BaseDirectory}\\Log\\Export_{DateTime.Now.ToString("yyyy-MM-dd")}.log";

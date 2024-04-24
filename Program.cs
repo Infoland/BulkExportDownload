@@ -165,8 +165,7 @@ namespace BulkExportDownload
                 }
             }
 
-            Logging.addMessageToEmailBody(emailBody);
-            Logging.SendEmail();
+            Logging.SendEmail(emailBody);
 
             Console.WriteLine("done.");
             if (ApplicationSettings.DebugMode)
@@ -274,7 +273,7 @@ namespace BulkExportDownload
                 {
                     //Create the subdirectorys
                     Directory.CreateDirectory(dirPath.Replace(bulkExportPath, Path.Combine(savePath, backUpDir)));
-                    
+
                     //Move files to the subdirectories in the backup folder
                     foreach (string filepath in Directory.GetFiles(dirPath))
                     {
