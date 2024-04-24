@@ -28,6 +28,7 @@ namespace BulkExportDownload
                 client.UseDefaultCredentials = false;
 
             client.Host = ApplicationSettings.MailServer;
+            client.EnableSsl = ApplicationSettings.EnableSSLMail;
             mail.Subject = ApplicationSettings.EmailSubject;
             mail.Body = body;
 
@@ -59,7 +60,7 @@ namespace BulkExportDownload
                 if (attachmentName != "")
                     WriteToLog($"Attachment(s): {attachmentName}");
                 WriteToLog($"Subject: \"{ApplicationSettings.EmailSubject}\"");
-                WriteToLog($"Contents of the mail: \n {emailBody}");
+                WriteToLog($"Contents of the mail: \n {body}");
             }
 
         }

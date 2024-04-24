@@ -83,5 +83,10 @@
         {
             get { return !string.IsNullOrEmpty(MailUser) && !string.IsNullOrEmpty(MailPassword); }
         }
+
+        public static bool EnableSSLMail 
+        {
+            get { return Properties.Settings.Default.EnableSSLMail; }
+        }
     }
 }
