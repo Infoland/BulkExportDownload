@@ -36,3 +36,5 @@ NB3: These used to be part of the [rest api examples repo](https://github.com/In
 - UseBulkexportNameAsFoldername: Can be False or True, when set to true the folder where the bulkexport is extracted to will be the name of the bulkexport in Zenya. This can cause issues with the full path name in Windows being to long
 - MailUser: The user  for the mail server (when not set the Credentials are not passed)
 - MailPassword: The password for the mail server  (when not set the Credentials are not passed)
+- EnableSSLMail: Can be False or True, when True there will be an SSL connection used to connect to the mailserver
+- ExtractInnerZIP: Can be False or True, when True the tool will check if there is a single zip file in the extracted ZIP from Zenya and extracts that to
