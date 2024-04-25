@@ -193,5 +193,14 @@ namespace BulkExportDownload.Properties {
                 return ((bool)(this["EnableSSLMail"]));
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ExtractInnerZIP {
+            get {
+                return ((bool)(this["ExtractInnerZIP"]));
+            }
+        }
     }
 }

@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
+using System.Runtime.Remoting;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Threading;
@@ -16,10 +18,14 @@ namespace BulkExportDownload
         static internal string emailBody;
         static internal List<SaveLocation> BulkExportsToDownload = new List<SaveLocation>();
         const string backUpDirPrefix = "back_up_";
-        static RestAPI restApi = new RestAPI();
+        static RestAPI restApi;
+        static FileSystem fileSystem;
 
         static void Main(string[] args)
         {
+            fileSystem = new FileSystem();
+            restApi = new RestAPI(fileSystem);
+
             Logging.WriteToLog("Reading Bulk Export Downloader Tool settings");
 
             //populate list of SaveLocation with the BulkExportsToDownload setting
@@ -153,7 +159,13 @@ namespace BulkExportDownload
                         DeleteBackups(bulkExportId, savePath);
 
                     if (!ApplicationSettings.SaveCopyOfZipFile)
-                        DeleteZip(zipPath);
+                    {
+                     var deleteZipResult =    fileSystem.DeleteZip(zipPath);
+                        if (!deleteZipResult.Success)
+                            emailBody += $" - {deleteZipResult.Message}\n";
+
+
+                    }
                 }
                 catch (Exception e)
                 {
@@ -239,24 +251,7 @@ namespace BulkExportDownload
             }
         }
 
-        static private void DeleteZip(string zipPath)
-        {
-
-            Logging.WriteToLog($"Deleting zip file: \"{zipPath}\"");
-            FileInfo zipInfo = new FileInfo(zipPath);
-
-            try
-            {
-                zipInfo.Delete();
-            }
-            catch (Exception e)
-            {
-                string message = $"ERROR: An error occurred when deleting the zip file \"{zipPath}\":\nMessage: {e.Message}\nStackTrace:\n{e.StackTrace}";
-                Logging.WriteToLog(message);
-                emailBody += $" - {message}\n";
-            }
-
-        }
+      
 
 
         private static void BackupBulkExport(string savePath, string bulkExportPath)
@@ -293,7 +288,7 @@ namespace BulkExportDownload
             }
             else
             {
-                Logging.WriteToLog($"Bulk Export folder \"{savePath}\" does not exist. No action required.");
+                Logging.WriteToLog($"Bulk Export folder \"{bulkExportPath}\" does not exist. No action required.");
             }
         }
 
@@ -313,7 +308,16 @@ namespace BulkExportDownload
 
             // .NET 4.8 does not support the "overwriteFiles"-parameter. This is why we need to clear the folder before extracting the Zipfile into the Bulk export folder.
             ZipFile.ExtractToDirectory(zipPath, bulkExportPath);
+
             emailBody += $" - Zip-file (\"{zipPath}\") has been extracted to: {bulkExportPath}\n";
+
+            //If the unpacked ZIP only contains a ZIP and the setting ExtractInnerZIP is set to true then extract that ZIP
+            if (ApplicationSettings.ExtractInnerZIP)
+            {
+                var extractResult =    fileSystem.ExtractInnerZipFileWhenPresent(bulkExportPath);
+                emailBody += $" - {Logging.LoggingLookup[extractResult]}\n";
+                Logging.WriteToLog($"{Logging.LoggingLookup[extractResult]}\n");
+            }
         }
 
         static private void CleanUpFolder(DirectoryInfo dirInfo)
