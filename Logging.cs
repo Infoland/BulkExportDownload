@@ -1,11 +1,21 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Mail;
+using static BulkExportDownload.FileSystem;
 
 namespace BulkExportDownload
 {
     class Logging
     {
+        public static Dictionary<InnerZipState, string> LoggingLookup = new Dictionary<InnerZipState, string>() {
+            { InnerZipState.NoZipFound, "No innerzip file is found" },
+            { InnerZipState.MoreThanOneFile, "More then one file is found in the folder" },
+            { InnerZipState.NoFiles, "There are no files found in the folder" },
+            { InnerZipState.Success, "Inner ZIP is extracted succesfully" },
+            { InnerZipState.UnzippedButCouldNotDeleteZip, "Inner ZIP found but an error occured when deleting the inner ZIP" }
+
+        };
 
         static public void SendEmail(string body)
         {

@@ -9,9 +9,9 @@ namespace BulkExportDownload
     {
         private FileSystem _fileSystem;
 
-        public RestAPI()
+        public RestAPI(FileSystem fileSystem)
         {
-            _fileSystem = new FileSystem();
+            _fileSystem = fileSystem;
         }
         public RestResponse ReadBulkExport(string bulkexportid)
         {
