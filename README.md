@@ -38,3 +38,54 @@ There are two way to configure this tool, either by using the appsettings.json o
 - **MailUser**: The user  for the mail server (when not set the Credentials are not passed)
 - **MailPassword**: The password for the mail server  (when not set the Credentials are not passed)
 - **EnableSSLMail**: Can be False or True, when True there will be an SSL connection used to connect to the mailserver
+
+# How to configure this tool
+1. Create an app registration
+Refer to “How to create an app registration”. Make sure to temporarily store the Client ID and Client Secret, as they will be used in the `configure the settings` step.
+2. Assign permissions
+Grant the app registration user the necessary permissions to access and download the bulk export.
+3. Configure the settings
+   Decide where you want to store the settings and configure them accordingly:
+   * appsettings.json: Create an appsettings.json file in the root folder. Add every setting with its corresponding value as shown above.
+      Example: 
+      ```json
+      {
+        "AppRegClientId": "",
+        "AppRegClientSecret": "",
+      
+        "AllowDownloadOfExportWithErrors": true,
+        "BulkExportsToDownload": "1, C:\\Bulkexport",
+        "SaveCopyOfZipFile": true,
+        "CleanUpPreviousExport": false,
+        "WaitForBulkexportToFinish": true,
+        "WaitTimeForExportToBeReadyInHours": 2,
+        "DownloadTries": 5,
+        "Url": "https://customer.zenya.work",
+        "DebugMode": false,
+        "UseBulkexportNameAsFoldername": false,
+        "ExtractInnerZIP": true,
+      
+      
+        "MailServer": "smtp.mytestmailserver.org",
+        "EMailSubject": "Bulk Export Downloader Report",
+        "FromEMailAddress": "fromemailaddress@mail.nl",
+        "ToEMailAddress": "toemailaddress@mail.nl",
+        "MailUser": "",
+        "MailPassword": "",
+        "EnableSSLMail": true
+      }
+      ```
+    * Envirnoment variables: Add every setting in your envirnoment variables. Make sure to prefix them with BulkExport_
+4. Run or configure the tool as before
+
+# How to create a app-registration
+- Open Zenya > application management > Integrations > App registrations
+- Click on the add button to create a new `Client Secret`
+  <img width="3836" height="1862" alt="image" src="https://github.com/user-attachments/assets/c049d451-e9a3-457a-b985-ca30ea6ac5da" />
+- Fill in the details "Name", "Description"
+- Click `Add`
+- After clicking `Add` a pop-up will show with the secret. Store this secret in the configuration property `AppRegClientSecret`
+- Click `Close`
+- Save the value from `App registration ID (Client ID)` in the configuration property `AppRegClientId`
+  <img width="3837" height="1856" alt="image" src="https://github.com/user-attachments/assets/9b309629-cef3-4943-bbe0-e668d9c45fbc" />
+- Make sure the created app-registration (This creates a new user in Zenya) has enough permissions on the bulk export
